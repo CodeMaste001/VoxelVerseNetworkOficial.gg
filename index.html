@@ -142,12 +142,14 @@
 
         /* Terminal Window */
         .terminal-window {
-            width: 100%;
-            max-width: 680px;
+            width: 90%;
+            max-width: 700px;
             background: #1a1a1a;
             border-radius: 12px;
             box-shadow: 0 25px 60px rgba(0,0,0,0.35);
-            margin-bottom: 3rem;
+            margin: 2rem auto;
+            min-height: 220px;
+            height: auto;
             overflow: hidden;
             text-align: left;
             z-index: 5;
@@ -189,12 +191,16 @@
         }
 
         .terminal-body {
-            padding: 20px;
-            height: 240px;
+            padding: 16px 20px;
+            min-height: 180px;
+            height: auto;
+            max-height: 300px;
             overflow-y: auto;
-            font-size: 0.85rem;
-            line-height: 1.5;
-            color: #fff;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: #a0ff9a;
+            white-space: pre-wrap;
+            word-break: break-word;
             scrollbar-width: thin;
             scrollbar-color: #333 transparent;
         }
