@@ -140,6 +140,93 @@
             z-index: 2;
         }
 
+        /* Terminal Window */
+        .terminal-window {
+            width: 100%;
+            max-width: 680px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            margin-bottom: 3rem;
+            overflow: hidden;
+            text-align: left;
+            z-index: 5;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .terminal-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ff5f57; }
+        .dot-yellow { background: #febc2e; }
+        .dot-green { background: #28c840; }
+
+        .terminal-title {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            left: 0;
+            font-size: 0.75rem;
+            color: #999;
+            pointer-events: none;
+        }
+
+        .terminal-body {
+            padding: 20px;
+            height: 240px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #fff;
+            scrollbar-width: thin;
+            scrollbar-color: #333 transparent;
+        }
+
+        .terminal-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .terminal-body::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .t-prompt { color: var(--accent); font-weight: 700; }
+        .t-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: #fff;
+            margin-left: 5px;
+            vertical-align: middle;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .t-line { margin-bottom: 5px; min-height: 1.2em; }
+        .t-output { color: #ccc; margin-bottom: 10px; opacity: 0.9; }
+
         .btn {
             padding: 1rem 2rem;
             font-family: 'IBM Plex Mono', monospace;
@@ -422,6 +509,22 @@
             <p class="hero-subtitle">
                 Desarrollamos apps de escritorio, móviles, bots de Discord, juegos en Roblox y plataformas web — desde Morelia para el mundo.
             </p>
+
+            <!-- Terminal Window Improvement -->
+            <div class="terminal-window">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <div class="dot dot-red"></div>
+                        <div class="dot dot-yellow"></div>
+                        <div class="dot dot-green"></div>
+                    </div>
+                    <div class="terminal-title">voxelverse ~ zsh</div>
+                </div>
+                <div class="terminal-body" id="terminal-content">
+                    <!-- Typed content will go here -->
+                </div>
+            </div>
+
             <div class="btn-group">
                 <button class="btn btn-solid" id="toggle-projects">▶ VER TODOS LOS PROYECTOS</button>
                 <button class="btn btn-outline" onclick="Tawk_API.toggle()">▶ CONTACTAR SOPORTE ◀</button>
@@ -515,6 +618,61 @@
                 projectsSection.scrollIntoView({ behavior: 'smooth' });
             }
         });
+
+        // Terminal Animation Logic
+        const terminalContent = document.getElementById('terminal-content');
+        const terminalBlocks = [
+            { cmd: 'whoami', output: '> Voxel Verse Studio — Estudio indie desde Morelia, MX' },
+            { cmd: 'ls proyectos/', output: '> Sonik Music Zero   Sonik Music M   Discord Bot   Roblox Games' },
+            { cmd: 'cat dato_curioso.txt', output: '> Sonik fue construido con Electron y tiene soporte de mods personalizados' },
+            { cmd: 'git log --oneline', output: '> a3f21bc feat: playlist system con drag & drop\n> 9c12def fix: puerto 3000 double-init resuelto\n> 7ba44e1 feat: Discord Rich Presence integrado' },
+            { cmd: 'uptime', output: '> Proyectos activos: 2  |  En desarrollo: 6  |  Bugs resueltos: ∞' }
+        ];
+
+        async function typeText(element, text, speed = 45) {
+            for (let i = 0; i < text.length; i++) {
+                element.innerHTML += text[i];
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+        }
+
+        async function runTerminal() {
+            while (true) {
+                terminalContent.innerHTML = '';
+                for (const block of terminalBlocks) {
+                    const line = document.createElement('div');
+                    line.className = 't-line';
+                    line.innerHTML = '<span class="t-prompt">$ </span><span class="t-cmd"></span><span class="t-cursor"></span>';
+                    terminalContent.appendChild(line);
+                    
+                    const cmdElement = line.querySelector('.t-cmd');
+                    await typeText(cmdElement, block.cmd);
+                    
+                    line.querySelector('.t-cursor').remove();
+                    
+                    const output = document.createElement('div');
+                    output.className = 't-output';
+                    // Split output by newline for multi-line blocks
+                    const outputLines = block.output.split('\n');
+                    for (const outLine of outputLines) {
+                        output.innerHTML += outLine + '<br>';
+                    }
+                    terminalContent.appendChild(output);
+                    terminalContent.scrollTop = terminalContent.scrollHeight;
+                    
+                    await new Promise(resolve => setTimeout(resolve, 900));
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 2500));
+                terminalContent.style.transition = 'opacity 0.5s';
+                terminalContent.style.opacity = '0';
+                await new Promise(resolve => setTimeout(resolve, 500));
+                terminalContent.style.opacity = '1';
+            }
+        }
+
+        runTerminal();
     </script>
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
