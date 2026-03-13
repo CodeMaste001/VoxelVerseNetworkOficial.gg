@@ -276,8 +276,8 @@
             transform: translate(-50%, -50%);
             width: 80vh;
             height: 80vh;
-            z-index: 1;
-            opacity: 0.7;
+            z-index: 0;
+            opacity: 1;
             pointer-events: none;
         }
 
@@ -454,6 +454,20 @@
             color: var(--text-main);
         }
 
+        /* Globe Canvas */
+        #globe-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            max-width: 900px;
+            max-height: 900px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .nav-links { display: none; }
@@ -484,33 +498,7 @@
 
         <section class="hero">
             <div class="globe-container">
-                <svg viewBox="0 0 100 100" class="wireframe-globe">
-                    <!-- Latitude Circles -->
-                    <circle cx="50" cy="50" r="48" />
-                    <circle cx="50" cy="50" r="40" />
-                    <circle cx="50" cy="50" r="30" />
-                    <circle cx="50" cy="50" r="18" />
-                    <circle cx="50" cy="50" r="8" />
-                    
-                    <!-- Longitude Ellipses -->
-                    <ellipse cx="50" cy="50" rx="48" ry="15" transform="rotate(0 50 50)" />
-                    <ellipse cx="50" cy="50" rx="48" ry="15" transform="rotate(30 50 50)" />
-                    <ellipse cx="50" cy="50" rx="48" ry="15" transform="rotate(60 50 50)" />
-                    <ellipse cx="50" cy="50" rx="48" ry="15" transform="rotate(90 50 50)" />
-                    <ellipse cx="50" cy="50" rx="48" ry="15" transform="rotate(120 50 50)" />
-                    <ellipse cx="50" cy="50" rx="48" ry="15" transform="rotate(150 50 50)" />
-                    
-                    <!-- Additional depth lines -->
-                    <ellipse cx="50" cy="50" rx="48" ry="35" transform="rotate(15 50 50)" />
-                    <ellipse cx="50" cy="50" rx="48" ry="35" transform="rotate(105 50 50)" />
-
-                    <!-- Network Nodes (subtle dots at some intersections) -->
-                    <circle cx="50" cy="2" r="0.8" fill="rgba(0,0,0,0.1)" stroke="none" />
-                    <circle cx="50" cy="98" r="0.8" fill="rgba(0,0,0,0.1)" stroke="none" />
-                    <circle cx="2" cy="50" r="0.8" fill="rgba(0,0,0,0.1)" stroke="none" />
-                    <circle cx="98" cy="50" r="0.8" fill="rgba(0,0,0,0.1)" stroke="none" />
-                    <circle cx="50" cy="50" r="0.8" fill="rgba(0,0,0,0.1)" stroke="none" />
-                </svg>
+                <canvas id="globe-canvas"></canvas>
             </div>
 
             <!-- Floating Chips -->
@@ -691,6 +679,153 @@
         }
 
         runTerminal();
+
+        // --- Globe Canvas Implementation ---
+        const canvas = document.getElementById('globe-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height, centerX, centerY, radius;
+        let rotationY = 0;
+        let rotationX = 0;
+
+        // Points and nodes
+        const points = [];
+        const latitudeLines = 10;
+        const longitudeLines = 14;
+        const highlightedNodes = [];
+        const numHighlighted = 6;
+
+        function initGlobe() {
+            points.length = 0;
+            // Create sphere points (latitude and longitude grid)
+            for (let i = 0; i <= latitudeLines; i++) {
+                const lat = (Math.PI * i) / latitudeLines - Math.PI / 2;
+                for (let j = 0; j < longitudeLines; j++) {
+                    const lon = (2 * Math.PI * j) / longitudeLines;
+                    points.push({ lat, lon });
+                }
+            }
+
+            // Select random highlighted nodes
+            highlightedNodes.length = 0;
+            for (let i = 0; i < numHighlighted; i++) {
+                highlightedNodes.push(Math.floor(Math.random() * points.length));
+            }
+        }
+
+        function resizeCanvas() {
+            const size = Math.min(window.innerWidth, window.innerHeight, 900);
+            canvas.width = size;
+            canvas.height = size;
+            width = canvas.width;
+            height = canvas.height;
+            centerX = width / 2;
+            centerY = height / 2;
+            radius = size * 0.42;
+        }
+
+        function project(lat, lon, rotY, rotX) {
+            // 3D coordinates
+            const x3d = radius * Math.cos(lat) * Math.sin(lon + rotY);
+            const y3d = radius * Math.sin(lat) * Math.cos(rotX) - radius * Math.cos(lat) * Math.cos(lon + rotY) * Math.sin(rotX);
+            const z3d = radius * Math.sin(lat) * Math.sin(rotX) + radius * Math.cos(lat) * Math.cos(lon + rotY) * Math.cos(rotX);
+
+            // Perspective projection
+            const perspective = 900;
+            const scale = perspective / (perspective + z3d);
+            const x2d = centerX + x3d * scale;
+            const y2d = centerY + y3d * scale;
+
+            return { x: x2d, y: y2d, z: z3d, scale: scale };
+        }
+
+        function drawGlobe() {
+            ctx.clearRect(0, 0, width, height);
+            
+            rotationY += 0.003;
+            rotationX = Math.sin(Date.now() * 0.0003) * 0.15;
+
+            const projectedPoints = points.map(p => project(p.lat, p.lon, rotationY, rotationX));
+
+            // Draw longitude lines
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.lineWidth = 0.5;
+            for (let j = 0; j < longitudeLines; j++) {
+                for (let i = 0; i <= latitudeLines; i++) {
+                    const idx = i * longitudeLines + j;
+                    const p = projectedPoints[idx];
+                    const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
+                    ctx.strokeStyle = `rgba(0, 0, 0, ${0.08 * opacity})`;
+                    
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                }
+                ctx.stroke();
+                ctx.beginPath();
+            }
+
+            // Draw latitude lines
+            for (let i = 0; i <= latitudeLines; i++) {
+                for (let j = 0; j <= longitudeLines; j++) {
+                    const idx = i * longitudeLines + (j % longitudeLines);
+                    const p = projectedPoints[idx];
+                    const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
+                    ctx.strokeStyle = `rgba(0, 0, 0, ${0.08 * opacity})`;
+                    
+                    if (j === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                }
+                ctx.stroke();
+                ctx.beginPath();
+            }
+
+            // Draw points at intersections
+            projectedPoints.forEach(p => {
+                const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
+                ctx.fillStyle = `rgba(0, 0, 0, ${0.15 * opacity})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1.5 * p.scale, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw highlighted violet nodes and connections
+            const nodeTime = Date.now();
+            const projectedNodes = highlightedNodes.map(idx => projectedPoints[idx]);
+
+            // Draw connections between violet nodes
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(108, 99, 255, ${0.2 * (0.5 + Math.sin(nodeTime * 0.002) * 0.5)})`;
+            ctx.lineWidth = 1;
+            for (let i = 0; i < projectedNodes.length; i++) {
+                for (let j = i + 1; j < projectedNodes.length; j++) {
+                    ctx.moveTo(projectedNodes[i].x, projectedNodes[i].y);
+                    ctx.lineTo(projectedNodes[j].x, projectedNodes[j].y);
+                }
+            }
+            ctx.stroke();
+
+            // Draw the nodes themselves
+            highlightedNodes.forEach((pIdx, i) => {
+                const p = projectedPoints[pIdx];
+                const pulse = 4 + Math.sin(nodeTime * 0.002 + i) * 1.5;
+                const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
+                
+                ctx.fillStyle = `rgba(108, 99, 255, ${0.6 * opacity})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, pulse * p.scale, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(drawGlobe);
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+        });
+
+        initGlobe();
+        resizeCanvas();
+        drawGlobe();
     </script>
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
