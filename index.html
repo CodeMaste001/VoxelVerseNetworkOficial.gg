@@ -472,7 +472,7 @@
             height: min(90vw, 800px);
             pointer-events: none;
             z-index: 0;
-            opacity: 0.9;
+            opacity: 1;
         }
 
         /* Responsive */
@@ -755,14 +755,14 @@
 
             // Draw longitude lines
             ctx.beginPath();
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
             ctx.lineWidth = 0.5;
             for (let j = 0; j < longitudeLines; j++) {
                 for (let i = 0; i <= latitudeLines; i++) {
                     const idx = i * longitudeLines + j;
                     const p = projectedPoints[idx];
-                    const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
-                    ctx.strokeStyle = `rgba(0, 0, 0, ${0.08 * opacity})`;
+                    const opacity = p.z > -radius * 0.1 ? 1 : 0.5;
+                    ctx.strokeStyle = `rgba(0, 0, 0, ${0.25 * opacity})`;
                     
                     if (i === 0) ctx.moveTo(p.x, p.y);
                     else ctx.lineTo(p.x, p.y);
@@ -776,8 +776,8 @@
                 for (let j = 0; j <= longitudeLines; j++) {
                     const idx = i * longitudeLines + (j % longitudeLines);
                     const p = projectedPoints[idx];
-                    const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
-                    ctx.strokeStyle = `rgba(0, 0, 0, ${0.08 * opacity})`;
+                    const opacity = p.z > -radius * 0.1 ? 1 : 0.5;
+                    ctx.strokeStyle = `rgba(0, 0, 0, ${0.25 * opacity})`;
                     
                     if (j === 0) ctx.moveTo(p.x, p.y);
                     else ctx.lineTo(p.x, p.y);
@@ -788,8 +788,8 @@
 
             // Draw points at intersections
             projectedPoints.forEach(p => {
-                const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
-                ctx.fillStyle = `rgba(0, 0, 0, ${0.15 * opacity})`;
+                const opacity = p.z > -radius * 0.1 ? 1 : 0.5;
+                ctx.fillStyle = `rgba(0, 0, 0, ${0.35 * opacity})`;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 1.5 * p.scale, 0, Math.PI * 2);
                 ctx.fill();
@@ -801,7 +801,7 @@
 
             // Draw connections between violet nodes
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(108, 99, 255, ${0.2 * (0.5 + Math.sin(nodeTime * 0.002) * 0.5)})`;
+            ctx.strokeStyle = `rgba(108, 99, 255, ${0.45 * (0.5 + Math.sin(nodeTime * 0.002) * 0.5)})`;
             ctx.lineWidth = 1;
             for (let i = 0; i < projectedNodes.length; i++) {
                 for (let j = i + 1; j < projectedNodes.length; j++) {
@@ -815,9 +815,9 @@
             highlightedNodes.forEach((pIdx, i) => {
                 const p = projectedPoints[pIdx];
                 const pulse = 4 + Math.sin(nodeTime * 0.002 + i) * 1.5;
-                const opacity = p.z > -radius * 0.1 ? 1 : 0.3;
+                const opacity = p.z > -radius * 0.1 ? 1 : 0.5;
                 
-                ctx.fillStyle = `rgba(108, 99, 255, ${0.6 * opacity})`;
+                ctx.fillStyle = `rgba(108, 99, 255, ${0.85 * opacity})`;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, pulse * p.scale, 0, Math.PI * 2);
                 ctx.fill();
