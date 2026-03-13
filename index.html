@@ -127,9 +127,11 @@
             max-width: 500px;
             font-size: 0.9rem;
             color: var(--text-sub);
+            margin-top: 1rem;
             margin-bottom: 3rem;
             line-height: 1.6;
-            z-index: 2;
+            z-index: 10;
+            position: relative;
         }
 
         .btn-group {
@@ -218,10 +220,10 @@
             50% { transform: translateY(-10px); }
         }
 
-        .chip-1 { top: 25%; left: 20%; animation-delay: 0s; }
-        .chip-2 { top: 20%; right: 25%; animation-delay: 1.5s; }
-        .chip-3 { bottom: 30%; left: 25%; animation-delay: 3s; }
-        .chip-4 { bottom: 25%; right: 20%; animation-delay: 4.5s; }
+        .chip-1 { top: 50%; left: 5%; transform: translateY(-50%); animation-delay: 0s; }
+        .chip-2 { top: 15%; right: 5%; animation-delay: 1.5s; }
+        .chip-3 { bottom: 15%; left: 5%; animation-delay: 3s; }
+        .chip-4 { top: 50%; right: 5%; transform: translateY(-50%); animation-delay: 4.5s; }
 
         /* Projects Section */
         #projects-section {
@@ -382,8 +384,8 @@
             </div>
             <div class="nav-links">
                 <a href="#projects-section" id="nav-proyectos">PROYECTOS</a>
-                <a href="#">SOPORTE</a>
-                <a href="#">DISCORD</a>
+                <a href="soporte.html">SOPORTE</a>
+                <a href="https://discord.gg/TUSERVIDOR" target="_blank">DISCORD</a>
             </div>
         </nav>
 
